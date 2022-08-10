@@ -3,6 +3,7 @@ import {getWeeksInMonth} from '@internationalized/date';
 import { RangeCalendarState } from 'react-stately';
 import { useLocale } from 'react-aria';
 import { CalendarCell } from './CalendarCell';
+import { useAvailability } from './useAvailability';
 
 
 export const CalendarGrid = ({ state, ...props }: { state: RangeCalendarState }) => {
@@ -24,17 +25,24 @@ export const CalendarGrid = ({ state, ...props }: { state: RangeCalendarState })
       <tbody>
         {[...new Array(weeksInMonth).keys()].map((weekIndex) => (
           <tr key={weekIndex}>
-            {state.getDatesInWeek(weekIndex).map((date, i) => (
-              date
-                ? (
-                  <CalendarCell
-                    key={i}
-                    state={state}
-                    date={date}
-                  />
-                )
-                : <td key={i} />
-            ))}
+            {state.getDatesInWeek(weekIndex).map((date, i) => {
+              if (!date) { return }
+              const {loading, data} = useAvailability(date);
+              return (
+                date && !loading
+                  ? (
+                    <>
+                    <p>{JSON.stringify(data?.availablities[0])}</p>
+                    <CalendarCell
+                      key={i}
+                      state={state}
+                      date={date} />
+                    </>
+                  )
+                  : <td key={i} />
+
+              );
+            })}
           </tr>
         ))}
       </tbody>
